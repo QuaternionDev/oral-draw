@@ -186,13 +186,13 @@ appwrite functions createDeployment \
 Replace `YOUR_FUNCTION_ID` with the ID shown in Appwrite → Functions → your function.
 
 **Option B — GitHub**
-
-1. Push the `function/` folder to a GitHub repo
+ 
+The function code is available in its own public repo: [QuaternionDev/oral-draw-function](https://github.com/QuaternionDev/oral-draw-function)
+ 
+1. Fork that repo, or push your own copy of the `function/` folder to a GitHub repo
 2. In Appwrite → Functions → your function → **Settings** → connect the GitHub repo
-3. Set **Root directory** to `function/` and **Entrypoint** to `src/main.js`
+3. Set **Root directory** to `/` (root of the repo) and **Entrypoint** to `src/main.js`
 4. Appwrite will auto-deploy whenever you push to the main branch
-
-After deploying, go to **Settings → Redeploy** to make sure the latest environment variables are active.
 
 **Option C — Manual upload via Appwrite console**
  
