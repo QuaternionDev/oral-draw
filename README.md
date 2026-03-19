@@ -194,6 +194,22 @@ Replace `YOUR_FUNCTION_ID` with the ID shown in Appwrite → Functions → your 
 
 After deploying, go to **Settings → Redeploy** to make sure the latest environment variables are active.
 
+**Option C — Manual upload via Appwrite console**
+ 
+If you don't want to use the CLI or GitHub, you can zip up the function folder and upload it directly:
+ 
+1. Open the `function/` folder on your computer
+2. Run `npm install` inside it so the `node_modules` folder is present
+3. Select everything inside `function/` (the `src/` folder, `package.json`, and `node_modules/`) and compress them into a `.zip` file
+4. In Appwrite → Functions → your function → **Deployments** → click **Create deployment**
+5. Choose **Manual** → upload the `.zip` file
+6. Set the **Entrypoint** to `src/main.js`
+7. Click **Deploy**
+ 
+> Note: The zip must contain the files at the root level, not inside a subfolder. If you zip the `function/` folder itself rather than its contents, the deployment will fail.
+ 
+After deploying with any option, go to **Settings → Redeploy** to make sure the latest environment variables are active.
+
 #### Step 5 — Test the function
 
 Go to **Functions → oral-draw-picker → Executions → Create execution** and click **Create**. Check the **Logs** tab — you should see:
@@ -208,6 +224,37 @@ For a full end-to-end test:
 3. Trigger a manual execution
 4. The session should flip to `picked` with your name as the winner
 
+---
+ 
+## Updating to a new version
+ 
+When new features are added to this project, updating is straightforward since the entire frontend is a single file.
+ 
+### Updating the frontend
+ 
+1. Download the new `index.html` from this repo
+2. Open it and copy your three config values from your old file into the new one:
+   ```js
+   const APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1';
+   const APPWRITE_PROJECT  = 'YOUR_PROJECT_ID';   // ← copy this
+   const DATABASE_ID       = 'YOUR_DATABASE_ID';  // ← and this
+   ```
+   (at an update, if you changed subject name, or class code, you'll need to change that again)
+3. Upload the new file to your hosting provider, replacing the old one
+4. If you're using Netlify or Vercel with GitHub auto-deploy, just push the new file and it deploys automatically
+ 
+### Updating the function
+ 
+1. Replace `function/src/main.js` with the new version from this repo
+2. Redeploy using whichever method you used originally (CLI, GitHub, or manual zip upload)
+3. The environment variables stay the same, you no need to change those
+ 
+### Database changes
+ 
+Occasionally a new version may require new attributes on existing collections. If the release notes mention database changes, you'll need to add those attributes manually in the Appwrite console before deploying the new frontend. The release notes will always list exactly what needs to be added.
+ 
+> **Tip:** Your existing data (sessions, signups, user accounts) is never affected by frontend or function updates — only schema changes (new attributes) would require action on your part, and those are rare.
+ 
 ---
 
 ## Hosting
@@ -268,6 +315,13 @@ const email = username.includes('@') ? username : username + '@feleles.local';
 
 ## Behind the scenes
 
+This started as a pretty small classroom problem. In my school, at the beggining of every history class, someone has to give an oral presentation. The teacher could just pick a student on the spot, but that's stressful for everyone, especially for the kid who gets surprised. Our alternative was to talk the day before, and decide who wants to give the presentation, but it was always a big chaos, cause information doesn't reached everyone instantly, and there were misunderstandings about it. And this is when i got an idea...
+ 
+My idea was simple: let students sign up *before* class if they're actually prepared, and then pick one of them randomly when class starts. No surprises for unprepared students, no unfair advantage for the ones who always shout first, and no confusions and misunderstanding over who gives the presentation.
+ 
+What started as "I'll just make a quick signup form" turned into a full-blown app with auth, an admin panel, a scheduled backend function, multilingual support, a classmates leaderboard, and a fairly decent dark UI. As these things tend to go.
+ 
+The whole thing was built in a single HTML file to keep deployment dead simple, that you literally just upload one file and it works. The backend is handled entirely by Appwrite Cloud, which is free for small projects and does everything: user accounts, the database, and the scheduled function that runs the draw automatically. I heard about it from a YT video, and this was the perfect occasion to try it out, and it actually worked pretty good.
 
 ---
 
