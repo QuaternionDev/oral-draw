@@ -326,7 +326,7 @@ The whole thing was built in a single HTML file to keep deployment dead simple, 
 ---
 ## Disclaimer
 
-This project was built with the assistance of AI (Claude by Anthropic). The code, documentation, and design were generated and iterated through a conversational development process.
+This project was built with the assistance of Claude by Anthropic. The code, documentation, and design were generated and iterated through a conversational development process. Most of this repo is vibe-coded.
 ---
 ## License
 MIT
