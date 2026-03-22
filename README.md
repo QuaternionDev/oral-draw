@@ -324,6 +324,9 @@ What started as "I'll just make a quick signup form" turned into a full-blown ap
 The whole thing was built in a single HTML file to keep deployment dead simple, that you literally just upload one file and it works. The backend is handled entirely by Appwrite Cloud, which is free for small projects and does everything: user accounts, the database, and the scheduled function that runs the draw automatically. I heard about it from a YT video, and this was the perfect occasion to try it out, and it actually worked pretty good.
 
 ---
+## Disclaimer
 
+This project was built with the assistance of Claude by Anthropic. The code, documentation, and design were generated and iterated through a conversational development process. Most of this repo is vibe-coded.
+---
 ## License
 MIT
