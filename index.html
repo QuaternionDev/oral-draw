@@ -609,6 +609,10 @@
       <div class="modal-title">Change password</div>
       <div class="modal-sub">Choose a new password for your account.</div>
       <div class="field">
+        <label>Current password</label>
+        <input type="password" id="modal-old-pw" placeholder="••••••••" />
+      </div>
+      <div class="field">
         <label>New password</label>
         <input type="password" id="modal-new-pw" placeholder="8+ characters" />
       </div>
@@ -1259,6 +1263,7 @@
   }
 
   async function changePassword() {
+    const oldPw = document.getElementById('modal-old-pw').value;
     const newPw  = document.getElementById('modal-new-pw').value;
     const confPw = document.getElementById('modal-confirm-pw').value;
     const errEl  = document.getElementById('modal-err');
@@ -1271,7 +1276,7 @@
 
     btn.disabled = true;
     try {
-      await account.updatePassword(newPw);
+      await account.updatePassword(newPw, oldPw);
       closePwModal();
       toast(t('toast_pw_updated'));
     } catch (e) {
