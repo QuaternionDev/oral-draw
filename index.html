@@ -49,6 +49,7 @@
 
     /* ─── LAYOUT ─────────────────────────────────────────── */
     .app { max-width: 520px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+    .preview-active .topbar { margin-top: 36px; }
 
     /* ─── SCREENS ────────────────────────────────────────── */
     .screen { display: none; animation: fadein 0.3s ease; }
@@ -918,6 +919,7 @@
     lastPickedId = DEMO_LAST_PICKED_ID;
     document.getElementById('preview-banner').style.display = 'block';
     document.getElementById('user-badge').textContent = DEMO_USER.name;
+    document.body.classList.add('preview-active');
     const adminBtn = document.getElementById('admin-panel-btn');
     if (adminBtn) adminBtn.style.display = 'inline-flex';
     renderList();
@@ -931,6 +933,7 @@
     DEMO_MODE = false;
     currentUser = null; allSessions = []; mySignups = {}; lastPickedId = null;
     document.getElementById('preview-banner').style.display = 'none';
+    document.body.classList.remove('preview-active');
     hideBottomNav();
     showScreen('screen-login');
   }
