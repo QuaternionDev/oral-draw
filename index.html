@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@17/dist/iife/sdk.js"></script>
 
   <style>
     /* ─── RESET ─────────────────────────────────────────── */
@@ -143,46 +142,6 @@
     .btn-primary:hover { background: var(--accent2); }
     .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
     .login-err { font-size: 13px; color: var(--red); margin-top: 10px; min-height: 18px; }
-    .preview-btn {
-      width: 100%;
-      margin-top: 12px;
-      background: none;
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 11px;
-      font-family: var(--sans);
-      font-size: 13px;
-      color: var(--muted);
-      cursor: pointer;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .preview-btn:hover { border-color: var(--border2); color: var(--text); }
-    .preview-banner {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      background: var(--amber-bg);
-      border-bottom: 0.5px solid rgba(212,147,90,0.3);
-      padding: 8px 16px;
-      font-size: 12px;
-      color: var(--amber);
-      text-align: center;
-      z-index: 90;
-      letter-spacing: 0.03em;
-    }
-    .preview-banner span { opacity: 0.6; margin: 0 6px; }
-    .exit-preview-btn {
-      background: none;
-      border: 0.5px solid rgba(212,147,90,0.5);
-      border-radius: 20px;
-      padding: 2px 10px;
-      font-family: var(--sans);
-      font-size: 11px;
-      color: var(--amber);
-      cursor: pointer;
-      margin-left: 10px;
-      transition: background 0.15s;
-    }
-    .exit-preview-btn:hover { background: rgba(212,147,90,0.1); }
 
     /* ─── SESSION LIST ───────────────────────────────────── */
     .list-header { margin-bottom: 1.5rem; }
@@ -352,25 +311,6 @@
     .you-tag { font-size: 11px; color: var(--muted); margin-left: 4px; }
     .vol-empty { font-size: 13px; color: var(--muted); padding: 6px 0; }
 
-    /* ─── LOADING ─────────────────────────────────────────── */
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      transition: opacity 0.3s;
-    }
-    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-    .spinner {
-      width: 28px; height: 28px;
-      border: 1.5px solid var(--border2);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ─── TOAST ───────────────────────────────────────────── */
@@ -591,15 +531,7 @@
 </head>
 <body>
 
-  <!-- PREVIEW BANNER -->
-  <div class="preview-banner" id="preview-banner" style="display:none;">
-    Preview mode — no data is saved
-    <span>·</span>
-    <button class="exit-preview-btn" onclick="exitPreview()">Exit preview</button>
-  </div>
-
   <!-- LOADING -->
-  <div class="loading-overlay" id="loading"><div class="spinner"></div></div>
 
   <!-- TOAST -->
   <div class="toast" id="toast"></div>
@@ -626,30 +558,6 @@
         <button class="btn-ghost" onclick="closePwModal()">Cancel</button>
         <button class="btn-accent" id="modal-save-btn" onclick="changePassword()">Save</button>
       </div>
-    </div>
-  </div>
-
-  <!-- LOGIN SCREEN -->
-  <div class="screen active" id="screen-login">
-    <div class="login-wrap">
-      <div class="login-eyebrow">Történelem · 9/G</div>
-      <h1 class="login-title">Oral<br><em>Draw.</em></h1>
-      <p class="login-sub">Sign in with your class account to volunteer<br>for the next oral presentation.</p>
-      <div class="field">
-        <label>Username</label>
-        <input type="text" id="login-username" placeholder="kovacs.balazs" autocomplete="username" onkeydown="if(event.key==='Enter')login()" />
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="login-pw" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()" />
-      </div>
-      <button class="btn-primary" id="login-btn" onclick="login()">Sign in</button>
-      <div class="login-err" id="login-err"></div>
-      <button class="preview-btn" onclick="enterPreview()">Preview without account →</button>
-      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:2rem;">
-      All rights reserved. - Made by <a href="https://github.com/QuaternionDev" style="color:var(--accent);text-decoration:none;">QuaternionDev</a> - 2026
-      <br>v1.0.5
-      </p>
     </div>
   </div>
 
@@ -835,27 +743,9 @@
   </div>
 
   <script>
-  // ─── APPWRITE CONFIG ────────────────────────────────────────
-  // !! Replace these with your actual Appwrite values !!
-  const APPWRITE_ENDPOINT = 'https://cloud.appwrite.io/v1';
-  const APPWRITE_PROJECT  = 'YOUR-APPWRITE-PROJECT-ID';
-  const DATABASE_ID       = 'YOUR-APPWRITE-DATABASE-ID';
-  const SESSIONS_COL      = 'sessions';
-  const SIGNUPS_COL       = 'signups';
-
-  // ─── SDK INIT ───────────────────────────────────────────────
-  const { Client, Account, Databases, Query, ID, Permission, Role } = Appwrite;
-  const client = new Client()
-    .setEndpoint(APPWRITE_ENDPOINT)
-    .setProject(APPWRITE_PROJECT);
-  const account   = new Account(client);
-  const databases = new Databases(client);
-
-  // ─── PREVIEW MODE ───────────────────────────────────────────
-  let DEMO_MODE = false;
-
-  const DEMO_USER = { $id: 'demo-me', name: 'Kovács Balázs', email: 'kovacs.balazs@class.hu' };
-  const DEMO_LAST_PICKED_ID = 'demo-toth'; // Tóth Péter was last picked — so they're locked out
+  // ─── DEMO DATA ───────────────────────────────────────────────
+  const DEMO_USER = { $id: 'demo-me', name: 'Kovács Balázs', email: 'kovacs.balazs@feleles.local' };
+  const DEMO_LAST_PICKED_ID = 'demo-toth';
 
   const now = new Date();
   const d = (offsetDays, h=8, m=0) => {
@@ -908,45 +798,19 @@
     },
   ].sort((a, b) => new Date(a.date) - new Date(b.date));
 
-  function enterPreview() {
-    DEMO_MODE = true;
-    isAdmin = true;
-    currentUser = DEMO_USER;
-    allSessions = JSON.parse(JSON.stringify(DEMO_SESSIONS));
-    mySignups = {};
-    // Pre-populate my signup for demo-s3
-    mySignups['demo-s3'] = 'v3';
-    lastPickedId = DEMO_LAST_PICKED_ID;
-    document.getElementById('preview-banner').style.display = 'block';
-    document.getElementById('user-badge').textContent = DEMO_USER.name;
-    document.body.classList.add('preview-active');
-    const adminBtn = document.getElementById('admin-panel-btn');
-    if (adminBtn) adminBtn.style.display = 'inline-flex';
-    renderList();
-    showBottomNav();
-    applyLang();
-    showScreen('screen-list');
-    hideLoading();
-  }
-
-  function exitPreview() {
-    DEMO_MODE = false;
-    currentUser = null; allSessions = []; mySignups = {}; lastPickedId = null;
-    document.getElementById('preview-banner').style.display = 'none';
-    document.body.classList.remove('preview-active');
-    hideBottomNav();
-    showScreen('screen-login');
-  }
-  let currentUser    = null;
+  // ─── STATE ───────────────────────────────────────────────────
+  let currentUser    = DEMO_USER;
   let currentSession = null;
-  let allSessions    = [];
-  let mySignups      = {};   // session_id -> signup doc $id
-  let lastPickedId   = null; // user_id of last picked person
+  let allSessions    = JSON.parse(JSON.stringify(DEMO_SESSIONS));
+  let mySignups      = { 'demo-s3': 'v3' };
+  let lastPickedId   = DEMO_LAST_PICKED_ID;
+  let isAdmin        = true;
   let countdownTimer = null;
+  let currentLang    = localStorage.getItem('lang') || 'hu';
 
-  // ─── UTILS ──────────────────────────────────────────────────
-  function showLoading()  { document.getElementById('loading').classList.remove('hidden'); }
-  function hideLoading()  { document.getElementById('loading').classList.add('hidden'); }
+  // ─── UTILS ───────────────────────────────────────────────────
+  function showLoading()  { /* no-op in preview */ }
+  function hideLoading()  { /* no-op in preview */ }
 
   function toast(msg, dur = 2500) {
     const el = document.getElementById('toast');
@@ -980,95 +844,138 @@
     if (diff <= 0) return 'Draw time passed';
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
-    if (h > 48) {
-      const days = Math.floor(h / 24);
-      return `Draw in ${days} day${days > 1 ? 's' : ''}`;
-    }
+    if (h > 48) { const days = Math.floor(h / 24); return `Draw in ${days} day${days > 1 ? 's' : ''}`; }
     if (h > 0) return `Draw in ${h}h ${m}m`;
     return `Draw in ${m} minute${m !== 1 ? 's' : ''}`;
   }
 
-  // ─── AUTH ────────────────────────────────────────────────────
-  async function login() {
-    const username = document.getElementById('login-username').value.trim();
-    const pw       = document.getElementById('login-pw').value;
-    const errEl    = document.getElementById('login-err');
-    const btn      = document.getElementById('login-btn');
-    errEl.textContent = '';
-    if (!username || !pw) { errEl.textContent = 'Please fill in both fields.'; return; }
-    btn.disabled = true; btn.textContent = 'Signing in…';
-    try {
-      const email = username.includes('@') ? username : username + '@feleles.local';
-      await account.createEmailPasswordSession(email, pw);
-      await afterLogin();
-    } catch (e) {
-      errEl.textContent = e.message || 'Login failed. Check your credentials.';
-      btn.disabled = false; btn.textContent = 'Sign in';
+  // ─── I18N ────────────────────────────────────────────────────
+  const TRANSLATIONS = {
+    hu: {
+      login_eyebrow: 'Történelem · 11/B', login_title_line1: 'Szóbeli', login_title_line2: 'Sorsolás.',
+      login_sub: 'Jelentkezz be az osztályfiókkal.', lbl_username: 'Felhasználónév', lbl_password: 'Jelszó',
+      btn_signin: 'Bejelentkezés', btn_preview: 'Előnézet fiók nélkül →',
+      nav_sessions: 'Felelések', nav_classmates: 'Osztály', nav_account: 'Fiók',
+      sessions_title: 'Felelések', sessions_sub_open: 'nyitott felelés · jelentkezz önkéntesnek',
+      detail_eyebrow: 'Szóbeli felelés sorsolás',
+      btn_signup: 'Jelentkezés erre a felelésre', btn_withdraw: '✓ Jelentkeztél — visszavon',
+      lock_msg: 'Te feleltél legutóbb — erre a sorsolásra nem jelentkezhetsz.',
+      winner_label: 'A mai előadó', winner_sub: 'Véletlenszerűen kisorsolva az önkéntesek közül',
+      failed_title: 'Nem volt önkéntes', failed_sub: 'Senki nem jelentkezett — a tanár választ manuálisan.',
+      lbl_volunteers: 'Önkéntesek', vol_empty: 'Még senki nem jelentkezett.',
+      countdown_auto: 'A sorsolás automatikusan fut a felelés kezdetén', you_tag: '(te)',
+      classmates_title: 'Osztálytársak', never_presented: 'Még nem felelt',
+      last_presented: 'Utoljára felelt', times_singular: 'alkalom', times_plural: 'alkalom',
+      account_title: 'Fiók', signed_in_as: 'Bejelentkezve', lbl_language: 'Nyelv',
+      btn_changepw: 'Jelszó megváltoztatása', btn_signout: 'Kijelentkezés',
+      pw_title: 'Jelszó megváltoztatása', pw_sub: 'Válassz új jelszót a fiókodhoz.',
+      lbl_new_pw: 'Új jelszó', lbl_confirm_pw: 'Új jelszó megerősítése', btn_save: 'Mentés', btn_cancel: 'Mégse',
+      admin_btn: 'Admin ⚙', admin_title: 'Admin panel', admin_sub: 'Felelések kezelése a sorsoláshoz.',
+      admin_upcoming: 'Közelgő felelések', admin_past: 'Korábbi felelések', btn_new_session: '+ Új felelés',
+      preview_banner: 'Előnézeti mód — az adatok nem kerülnek mentésre', btn_exit_preview: 'Kilépés',
+      toast_signed_up: 'Sikeresen jelentkeztél!', toast_withdrawn: 'Jelentkezés visszavonva.',
+      toast_pw_updated: 'Jelszó sikeresen megváltoztatva.', toast_demo_pw: 'Előnézeti módban nem elérhető.',
+    },
+    en: {
+      login_eyebrow: 'History · 11/B', login_title_line1: 'Oral', login_title_line2: 'Draw.',
+      login_sub: 'Sign in with your class account.', lbl_username: 'Username', lbl_password: 'Password',
+      btn_signin: 'Sign in', btn_preview: 'Preview without account →',
+      nav_sessions: 'Sessions', nav_classmates: 'Classmates', nav_account: 'Account',
+      sessions_title: 'Sessions', sessions_sub_open: 'open session · sign up to volunteer',
+      detail_eyebrow: 'Oral presentation draw',
+      btn_signup: 'Sign up for this session', btn_withdraw: '✓ Signed up — withdraw',
+      lock_msg: "You presented last session — you're not eligible for this draw.",
+      winner_label: "Today's presenter", winner_sub: 'Selected randomly from volunteers',
+      failed_title: 'No volunteers', failed_sub: 'Nobody signed up — teacher selects manually.',
+      lbl_volunteers: 'Volunteers', vol_empty: 'Nobody signed up yet.',
+      countdown_auto: 'Draw runs automatically at session start', you_tag: '(you)',
+      classmates_title: 'Classmates', never_presented: 'Never presented',
+      last_presented: 'Last presented', times_singular: 'time', times_plural: 'times',
+      account_title: 'Account', signed_in_as: 'Signed in as', lbl_language: 'Language',
+      btn_changepw: 'Change password', btn_signout: 'Sign out',
+      pw_title: 'Change password', pw_sub: 'Choose a new password for your account.',
+      lbl_new_pw: 'New password', lbl_confirm_pw: 'Confirm new password', btn_save: 'Save', btn_cancel: 'Cancel',
+      admin_btn: 'Admin ⚙', admin_title: 'Admin panel', admin_sub: 'Manage sessions for the oral draw.',
+      admin_upcoming: 'Upcoming sessions', admin_past: 'Past sessions', btn_new_session: '+ New session',
+      preview_banner: 'Preview mode — no data is saved', btn_exit_preview: 'Exit preview',
+      toast_signed_up: "You're signed up!", toast_withdrawn: 'Signup withdrawn.',
+      toast_pw_updated: 'Password updated successfully.', toast_demo_pw: 'Not available in preview.',
+    },
+    de: {
+      login_eyebrow: 'Geschichte · 11/B', login_title_line1: 'Mündliche', login_title_line2: 'Auslosung.',
+      login_sub: 'Melde dich mit deinem Klassenkonto an.', lbl_username: 'Benutzername', lbl_password: 'Passwort',
+      btn_signin: 'Anmelden', btn_preview: 'Vorschau ohne Konto →',
+      nav_sessions: 'Stunden', nav_classmates: 'Klasse', nav_account: 'Konto',
+      sessions_title: 'Stunden', sessions_sub_open: 'offene Stunde · als Freiwilliger anmelden',
+      detail_eyebrow: 'Mündliche Prüfung Auslosung',
+      btn_signup: 'Für diese Stunde anmelden', btn_withdraw: '✓ Angemeldet — zurückziehen',
+      lock_msg: 'Du hast zuletzt präsentiert — du bist für diese Auslosung nicht berechtigt.',
+      winner_label: 'Heutiger Präsentator', winner_sub: 'Zufällig aus den Freiwilligen ausgewählt',
+      failed_title: 'Keine Freiwilligen', failed_sub: 'Niemand hat sich angemeldet — der Lehrer wählt manuell.',
+      lbl_volunteers: 'Freiwillige', vol_empty: 'Noch niemand angemeldet.',
+      countdown_auto: 'Auslosung läuft automatisch zum Stundenbeginn', you_tag: '(du)',
+      classmates_title: 'Klassenkameraden', never_presented: 'Noch nie präsentiert',
+      last_presented: 'Zuletzt präsentiert', times_singular: 'Mal', times_plural: 'Mal',
+      account_title: 'Konto', signed_in_as: 'Angemeldet als', lbl_language: 'Sprache',
+      btn_changepw: 'Passwort ändern', btn_signout: 'Abmelden',
+      pw_title: 'Passwort ändern', pw_sub: 'Wähle ein neues Passwort für dein Konto.',
+      lbl_new_pw: 'Neues Passwort', lbl_confirm_pw: 'Neues Passwort bestätigen', btn_save: 'Speichern', btn_cancel: 'Abbrechen',
+      admin_btn: 'Admin ⚙', admin_title: 'Admin-Panel', admin_sub: 'Stunden für die Auslosung verwalten.',
+      admin_upcoming: 'Kommende Stunden', admin_past: 'Vergangene Stunden', btn_new_session: '+ Neue Stunde',
+      preview_banner: 'Vorschaumodus — keine Daten werden gespeichert', btn_exit_preview: 'Vorschau beenden',
+      toast_signed_up: 'Du bist angemeldet!', toast_withdrawn: 'Anmeldung zurückgezogen.',
+      toast_pw_updated: 'Passwort erfolgreich geändert.', toast_demo_pw: 'Im Vorschaumodus nicht verfügbar.',
     }
+  };
+
+  function t(key) { return TRANSLATIONS[currentLang][key] || TRANSLATIONS['en'][key] || key; }
+
+  function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('lang', lang);
+    applyLang();
   }
 
-  let isAdmin = false;
-
-  async function afterLogin() {
-    currentUser = await account.get();
-    isAdmin = (currentUser.labels || []).includes('admin');
-    document.getElementById('user-badge').textContent = currentUser.name || currentUser.email;
-    const adminBtn = document.getElementById('admin-panel-btn');
-    if (adminBtn) adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
-    await loadData();
-    showBottomNav();
-    showScreen('screen-list');
-    hideLoading();
-  }
-
-  async function logout() {
-    try { await account.deleteSession('current'); } catch (_) {}
-    currentUser = null; allSessions = []; mySignups = {};
-    hideBottomNav();
-    showScreen('screen-login');
-  }
-
-  // ─── DATA ────────────────────────────────────────────────────
-  async function loadData() {
-    // Load all sessions sorted by date
-    const res = await databases.listDocuments(DATABASE_ID, SESSIONS_COL, [
-      Query.orderAsc('date'),
-      Query.limit(50)
-    ]);
-    allSessions = res.documents;
-
-    // Load my signups
-    const mySR = await databases.listDocuments(DATABASE_ID, SIGNUPS_COL, [
-      Query.equal('user_id', currentUser.$id),
-      Query.limit(50)
-    ]);
-    mySignups = {};
-    mySR.documents.forEach(s => { mySignups[s.session_id] = s.$id; });
-
-    // Find last picked session → get winner_id
-    const pickedSessions = allSessions.filter(s => s.state === 'picked');
-    if (pickedSessions.length > 0) {
-      pickedSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-      lastPickedId = pickedSessions[0].winner_id || null;
-    }
-
-    renderList();
+  function applyLang() {
+    const L = currentLang;
+    ['hu','en','de'].forEach(l => { const btn = document.getElementById('lang-' + l); if (btn) btn.classList.toggle('active', l === L); });
+    const navLabels = document.querySelectorAll('.nav-label');
+    const navKeys = ['nav_sessions','nav_classmates','nav_account'];
+    navLabels.forEach((el, i) => { if (navKeys[i]) el.textContent = t(navKeys[i]); });
+    const lt = document.querySelector('#screen-list .list-title');
+    if (lt) lt.textContent = t('sessions_title');
+    const atitle = document.querySelector('#screen-account h2');
+    if (atitle) atitle.textContent = t('account_title');
+    const llbl = document.getElementById('lbl-language');
+    if (llbl) llbl.textContent = t('lbl_language');
+    const ctitle = document.querySelector('#screen-classmates h2');
+    if (ctitle) ctitle.textContent = t('classmates_title');
+    const pwtitle = document.querySelector('#pw-modal .modal-title');
+    if (pwtitle) pwtitle.textContent = t('pw_title');
+    const pwsub = document.querySelector('#pw-modal .modal-sub');
+    if (pwsub) pwsub.textContent = t('pw_sub');
+    const pwLabels = document.querySelectorAll('#pw-modal .field label');
+    if (pwLabels[0]) pwLabels[0].textContent = t('lbl_new_pw');
+    if (pwLabels[1]) pwLabels[1].textContent = t('lbl_confirm_pw');
+    const pwsave = document.getElementById('modal-save-btn');
+    if (pwsave) pwsave.textContent = t('btn_save');
+    const pwcancel = document.querySelector('#pw-modal .btn-ghost');
+    if (pwcancel) pwcancel.textContent = t('btn_cancel');
+    if (currentSession) renderDetail();
+    if (document.getElementById('screen-classmates').classList.contains('active')) renderClassmates();
   }
 
   // ─── LIST ────────────────────────────────────────────────────
   function renderList() {
     const container = document.getElementById('sessions-container');
     const sub       = document.getElementById('list-sub');
-
     if (allSessions.length === 0) {
       sub.textContent = 'No sessions scheduled.';
       container.innerHTML = '<div class="empty-state">No upcoming sessions found.</div>';
       return;
     }
-
     const upcoming = allSessions.filter(s => s.state === 'open').length;
-    sub.textContent = `${upcoming} open session${upcoming !== 1 ? 's' : ''} · sign up to volunteer`;
-
+    sub.textContent = `${upcoming} ${t('sessions_sub_open')}`;
     container.innerHTML = allSessions.map(s => {
       const mine  = !!mySignups[s.$id];
       const count = s.volunteer_count || 0;
@@ -1095,248 +1002,194 @@
   }
 
   // ─── DETAIL ──────────────────────────────────────────────────
-  async function showDetail(sessionId) {
-    showLoading();
+  function showDetail(sessionId) {
     currentSession = allSessions.find(s => s.$id === sessionId);
-    if (!currentSession) { hideLoading(); return; }
-
-    if (!DEMO_MODE) {
-      const volRes = await databases.listDocuments(DATABASE_ID, SIGNUPS_COL, [
-        Query.equal('session_id', sessionId),
-        Query.limit(50)
-      ]);
-      currentSession._volunteers = volRes.documents;
-    }
-
+    if (!currentSession) return;
     renderDetail();
     showScreen('screen-detail');
-    hideLoading();
   }
 
   function renderDetail() {
-    const s       = currentSession;
-    const isOpen  = s.state === 'open';
-    const isMine  = !!mySignups[s.$id];
+    const s        = currentSession;
+    const isOpen   = s.state === 'open';
+    const isMine   = !!mySignups[s.$id];
     const isLocked = lastPickedId === currentUser.$id;
 
-    // Header
-    document.getElementById('d-eyebrow').textContent   = 'Oral presentation draw';
-    document.getElementById('d-title').textContent     = formatDate(s.date);
-    document.getElementById('d-subject').textContent   = s.subject || '';
-    document.getElementById('d-pill').innerHTML        = pillHTML(s.state, s._volunteers.length);
+    document.getElementById('d-eyebrow').textContent = t('detail_eyebrow');
+    document.getElementById('d-title').textContent   = formatDate(s.date);
+    document.getElementById('d-subject').textContent = s.subject || '';
+    document.getElementById('d-pill').innerHTML      = pillHTML(s.state, s._volunteers.length);
 
-    // Countdown
     const cdEl = document.getElementById('d-countdown');
     if (countdownTimer) clearInterval(countdownTimer);
     if (isOpen && s.deadline) {
       cdEl.textContent = countdown(s.deadline);
       countdownTimer = setInterval(() => { cdEl.textContent = countdown(s.deadline); }, 30000);
-    } else {
-      cdEl.textContent = '';
-    }
+    } else { cdEl.textContent = ''; }
 
-    // Winner
     const winnerBlock = document.getElementById('d-winner');
     if (s.state === 'picked' && s.winner_name) {
       winnerBlock.style.display = 'block';
       document.getElementById('d-winner-name').textContent = s.winner_name;
-    } else {
-      winnerBlock.style.display = 'none';
-    }
+      document.getElementById('d-winner-label').textContent = t('winner_label');
+      document.getElementById('d-winner-sub').textContent   = t('winner_sub');
+    } else { winnerBlock.style.display = 'none'; }
 
-    // Failed
     document.getElementById('d-failed').style.display = s.state === 'failed' ? 'block' : 'none';
 
-    // Signup / lock
     const signupSection = document.getElementById('d-signup-section');
     const signupBtn     = document.getElementById('d-signup-btn');
     const lockEl        = document.getElementById('d-lock');
 
     if (!isOpen) {
-      signupSection.style.display = 'none';
-      lockEl.style.display        = 'none';
+      signupSection.style.display = 'none'; lockEl.style.display = 'none';
     } else if (isLocked) {
-      signupSection.style.display = 'none';
-      lockEl.style.display        = 'flex';
+      signupSection.style.display = 'none'; lockEl.style.display = 'flex';
+      lockEl.querySelector('span:last-child').textContent = t('lock_msg');
     } else {
-      signupSection.style.display = 'block';
-      lockEl.style.display        = 'none';
-      if (isMine) {
-        signupBtn.textContent = '✓ Signed up — withdraw';
-        signupBtn.classList.add('signed');
-      } else {
-        signupBtn.textContent = 'Sign up for this session';
-        signupBtn.classList.remove('signed');
-      }
+      signupSection.style.display = 'block'; lockEl.style.display = 'none';
+      signupBtn.textContent = isMine ? t('btn_withdraw') : t('btn_signup');
+      signupBtn.className   = 'btn-signup' + (isMine ? ' signed' : '');
     }
 
-    // Volunteers list
     renderVolunteers(s._volunteers);
   }
 
   function renderVolunteers(vols) {
     const listEl  = document.getElementById('d-vol-list');
     const countEl = document.getElementById('d-vol-count');
+    const volLabel = document.getElementById('d-vol-label');
+    if (volLabel) volLabel.textContent = t('lbl_volunteers');
     countEl.textContent = `${vols.length} / 17`;
-
-    if (vols.length === 0) {
-      listEl.innerHTML = '<div class="vol-empty">Nobody signed up yet.</div>';
-      return;
-    }
-
+    if (vols.length === 0) { listEl.innerHTML = `<div class="vol-empty">${t('vol_empty')}</div>`; return; }
     listEl.innerHTML = vols.map(v => {
       const isMe = v.user_id === currentUser.$id;
       const name = v.user_name || 'Student';
-      return `
-        <div class="vol-row">
-          <div class="avatar${isMe ? ' me' : ''}">${initials(name)}</div>
-          <span class="vol-name">${name}${isMe ? '<span class="you-tag">(you)</span>' : ''}</span>
-        </div>`;
+      return `<div class="vol-row">
+        <div class="avatar${isMe ? ' me' : ''}">${initials(name)}</div>
+        <span class="vol-name">${name}${isMe ? `<span class="you-tag">${t('you_tag')}</span>` : ''}</span>
+      </div>`;
     }).join('');
   }
 
-  async function toggleSignup() {
+  // ─── SIGNUP (local only) ──────────────────────────────────────
+  function toggleSignup() {
     const s   = currentSession;
     const btn = document.getElementById('d-signup-btn');
     btn.disabled = true;
-
-    if (DEMO_MODE) {
-      if (mySignups[s.$id]) {
-        s._volunteers = s._volunteers.filter(v => v.user_id !== currentUser.$id);
-        s.volunteer_count = Math.max(0, (s.volunteer_count || 1) - 1);
-        delete mySignups[s.$id];
-        toast(t('toast_withdrawn'));
-      } else {
-        const fakeDoc = { $id: 'demo-new', user_id: currentUser.$id, user_name: currentUser.name, session_id: s.$id };
-        s._volunteers.push(fakeDoc);
-        s.volunteer_count = (s.volunteer_count || 0) + 1;
-        mySignups[s.$id] = 'demo-new';
-        toast(t('toast_signed_up'));
-      }
-      renderDetail();
-      renderList();
-      btn.disabled = false;
-      return;
+    if (mySignups[s.$id]) {
+      s._volunteers = s._volunteers.filter(v => v.user_id !== currentUser.$id);
+      s.volunteer_count = Math.max(0, (s.volunteer_count || 1) - 1);
+      delete mySignups[s.$id];
+      toast(t('toast_withdrawn'));
+    } else {
+      const fakeDoc = { $id: 'demo-new-' + Date.now(), user_id: currentUser.$id, user_name: currentUser.name, session_id: s.$id };
+      s._volunteers.push(fakeDoc);
+      s.volunteer_count = (s.volunteer_count || 0) + 1;
+      mySignups[s.$id] = fakeDoc.$id;
+      toast(t('toast_signed_up'));
     }
+    renderDetail();
+    renderList();
+    btn.disabled = false;
+  }
 
-    try {
-      if (mySignups[s.$id]) {
-        await databases.deleteDocument(DATABASE_ID, SIGNUPS_COL, mySignups[s.$id]);
-        delete mySignups[s.$id];
-        s._volunteers = s._volunteers.filter(v => v.user_id !== currentUser.$id);
-        await databases.updateDocument(DATABASE_ID, SESSIONS_COL, s.$id, {
-          volunteer_count: Math.max(0, (s.volunteer_count || 1) - 1)
-        });
-        s.volunteer_count = Math.max(0, (s.volunteer_count || 1) - 1);
-        toast(t('toast_withdrawn'));
-      } else {
-        const doc = await databases.createDocument(DATABASE_ID, SIGNUPS_COL, ID.unique(), {
-          session_id: s.$id,
-          user_id:    currentUser.$id,
-          user_name:  currentUser.name || currentUser.email,
-          signed_up_at: new Date().toISOString()
-        }, [
-          Permission.read(Role.any()),
-          Permission.delete(Role.user(currentUser.$id))
-        ]);
-        mySignups[s.$id] = doc.$id;
-        s._volunteers.push(doc);
-        await databases.updateDocument(DATABASE_ID, SESSIONS_COL, s.$id, {
-          volunteer_count: (s.volunteer_count || 0) + 1
-        });
-        s.volunteer_count = (s.volunteer_count || 0) + 1;
-        toast(t('toast_signed_up'));
-      }
-      renderDetail();
-      renderList();
-    } catch (e) {
-      toast('Something went wrong. Try again.');
-      console.error(e);
-    } finally {
-      btn.disabled = false;
+  // ─── PASSWORD MODAL (preview only — no actual change) ────────
+  function openPwModal() { toast(t('toast_demo_pw')); }
+  function closePwModal() { document.getElementById('pw-modal').classList.remove('open'); }
+
+  // ─── NAVIGATION ──────────────────────────────────────────────
+  let currentNav = 'sessions';
+
+  function showBottomNav()  { document.getElementById('bottom-nav').classList.add('visible'); }
+  function hideBottomNav()  { document.getElementById('bottom-nav').classList.remove('visible'); }
+
+  function navTo(tab) {
+    currentNav = tab;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('nav-' + tab)?.classList.add('active');
+    if (tab === 'sessions') showList();
+    else if (tab === 'classmates') { renderClassmates(); showScreen('screen-classmates'); }
+    else if (tab === 'account') {
+      document.getElementById('acct-name').textContent  = currentUser.name || '';
+      document.getElementById('acct-email').textContent = currentUser.email || '';
+      showScreen('screen-account');
     }
   }
 
-  // ─── CHANGE PASSWORD MODAL ───────────────────────────────────
-  function openPwModal() {
-    if (DEMO_MODE) { toast(t('toast_demo_pw')); return; }
-    document.getElementById('modal-new-pw').value     = '';
-    document.getElementById('modal-confirm-pw').value = '';
-    document.getElementById('modal-err').textContent  = '';
-    document.getElementById('pw-modal').classList.add('open');
+  // ─── CLASSMATES ───────────────────────────────────────────────
+  function renderClassmates() {
+    const listEl = document.getElementById('classmates-list');
+    const subEl  = document.getElementById('cm-sub');
+    const pickedSessions = allSessions.filter(s => s.state === 'picked' && s.winner_name);
+    pickedSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const peopleMap = {};
+    pickedSessions.forEach(s => {
+      if (!s.winner_id) return;
+      if (!peopleMap[s.winner_id]) peopleMap[s.winner_id] = { name: s.winner_name, pickCount: 0, lastPickDate: null };
+      peopleMap[s.winner_id].pickCount++;
+      if (!peopleMap[s.winner_id].lastPickDate) peopleMap[s.winner_id].lastPickDate = s.date;
+    });
+    allSessions.forEach(s => {
+      if (s._volunteers) s._volunteers.forEach(v => {
+        if (!peopleMap[v.user_id]) peopleMap[v.user_id] = { name: v.user_name, pickCount: 0, lastPickDate: null };
+      });
+    });
+    if (!peopleMap[currentUser.$id]) peopleMap[currentUser.$id] = { name: currentUser.name, pickCount: 0, lastPickDate: null };
+    const people = Object.entries(peopleMap).map(([id, d]) => ({ id, ...d }));
+    people.sort((a, b) => b.pickCount - a.pickCount || (a.name || '').localeCompare(b.name || ''));
+    const totalPicks = people.reduce((sum, p) => sum + p.pickCount, 0);
+    subEl.textContent = `${people.length} / 17 · ${totalPicks} presentation${totalPicks !== 1 ? 's' : ''} given`;
+    listEl.innerHTML = people.map(p => {
+      const isMe = p.id === currentUser.$id;
+      const inits = (p.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const avatarClass = isMe ? 'me' : p.pickCount > 0 ? 'picked' : '';
+      const lastPick = p.lastPickDate ? new Date(p.lastPickDate).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) : null;
+      const timesStr = p.pickCount === 1 ? `1 ${t('times_singular')}` : `${p.pickCount} ${t('times_plural')}`;
+      return `<div class="cm-row">
+        <div class="cm-avatar ${avatarClass}">${inits}</div>
+        <div class="cm-info">
+          <div class="cm-name">${p.name || 'Unknown'}${isMe ? ` <span style="font-size:11px;color:var(--muted);">${t('you_tag')}</span>` : ''}</div>
+          ${lastPick ? `<div class="cm-detail">${t('last_presented')} ${lastPick}</div>` : `<div class="cm-detail" style="color:var(--border2);">${t('never_presented')}</div>`}
+        </div>
+        <div class="cm-right"><span class="cm-count ${p.pickCount > 0 ? 'has-picks' : ''}">${timesStr}</span></div>
+      </div>`;
+    }).join('');
   }
-  function closePwModal() {
-    document.getElementById('pw-modal').classList.remove('open');
-  }
 
-  async function changePassword() {
-    const oldPw = document.getElementById('modal-old-pw').value;
-    const newPw  = document.getElementById('modal-new-pw').value;
-    const confPw = document.getElementById('modal-confirm-pw').value;
-    const errEl  = document.getElementById('modal-err');
-    const btn    = document.getElementById('modal-save-btn');
-    errEl.textContent = '';
-
-    if (!newPw || !confPw)  { errEl.textContent = 'Please fill in both fields.'; return; }
-    if (newPw.length < 8)   { errEl.textContent = 'Password must be at least 8 characters.'; return; }
-    if (newPw !== confPw)   { errEl.textContent = "Passwords don't match."; return; }
-
-    btn.disabled = true;
-    try {
-      await account.updatePassword(newPw, oldPw);
-      closePwModal();
-      toast(t('toast_pw_updated'));
-    } catch (e) {
-      errEl.textContent = e.message || 'Failed to update password.';
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-
-  // ─── ADMIN ───────────────────────────────────────────────────
-  let editingSessionId = null;
+  // ─── ADMIN (local only) ───────────────────────────────────────
+  let editingSessionId  = null;
   let deletingSessionId = null;
 
-  function showAdmin() {
-    renderAdminLists();
-    showScreen('screen-admin');
-  }
+  function showAdmin() { renderAdminLists(); showScreen('screen-admin'); }
 
   function renderAdminLists() {
-    const now = new Date();
-    const upcoming = allSessions.filter(s => new Date(s.date) >= now || s.state === 'open');
-    const past     = allSessions.filter(s => new Date(s.date) < now && s.state !== 'open');
-
-    document.getElementById('admin-upcoming-list').innerHTML =
-      upcoming.length === 0
-        ? '<div style="font-size:13px;color:var(--muted);padding:6px 0;">No upcoming sessions.</div>'
-        : upcoming.map(adminSessionCard).join('');
-
-    document.getElementById('admin-past-list').innerHTML =
-      past.length === 0
-        ? '<div style="font-size:13px;color:var(--muted);padding:6px 0;">No past sessions.</div>'
-        : past.map(adminSessionCard).join('');
+    const now2 = new Date();
+    const upcoming = allSessions.filter(s => new Date(s.date) >= now2 || s.state === 'open');
+    const past     = allSessions.filter(s => new Date(s.date) < now2 && s.state !== 'open');
+    document.getElementById('admin-upcoming-list').innerHTML = upcoming.length === 0
+      ? '<div style="font-size:13px;color:var(--muted);padding:6px 0;">No upcoming sessions.</div>'
+      : upcoming.map(adminSessionCard).join('');
+    document.getElementById('admin-past-list').innerHTML = past.length === 0
+      ? '<div style="font-size:13px;color:var(--muted);padding:6px 0;">No past sessions.</div>'
+      : past.map(adminSessionCard).join('');
   }
 
   function adminSessionCard(s) {
-    const d = new Date(s.date);
-    const dateStr = d.toLocaleDateString('hu-HU', { weekday: 'short', month: 'short', day: 'numeric' });
-    return `
-      <div class="admin-session-card">
-        <div class="asc-left">
-          <div class="asc-date">${dateStr}</div>
-          <div class="asc-subject">${s.subject || '—'}</div>
-        </div>
-        <div class="asc-right">
-          ${pillHTML(s.state, s.volunteer_count || 0)}
-          <button class="icon-btn" title="Edit" onclick="openEditSessionModal('${s.$id}')">✎</button>
-          <button class="icon-btn danger" title="Delete" onclick="openConfirmDelete('${s.$id}')">✕</button>
-        </div>
-      </div>`;
+    const dateStr = new Date(s.date).toLocaleDateString('hu-HU', { weekday: 'short', month: 'short', day: 'numeric' });
+    return `<div class="admin-session-card">
+      <div class="asc-left">
+        <div class="asc-date">${dateStr}</div>
+        <div class="asc-subject">${s.subject || '—'}</div>
+      </div>
+      <div class="asc-right">
+        ${pillHTML(s.state, s.volunteer_count || 0)}
+        <button class="icon-btn" onclick="openEditSessionModal('${s.$id}')">✎</button>
+        <button class="icon-btn danger" onclick="openConfirmDelete('${s.$id}')">✕</button>
+      </div>
+    </div>`;
   }
 
-  // ─── SESSION FORM MODAL ───────────────────────────────────────
   function openNewSessionModal() {
     editingSessionId = null;
     document.getElementById('session-modal-title').textContent = 'New session';
@@ -1345,7 +1198,6 @@
     document.getElementById('sf-subject').value = '';
     document.getElementById('sf-time').value    = '08:05';
     document.getElementById('sf-state').value   = 'open';
-    document.getElementById('sf-day').value     = '';
     document.getElementById('session-modal-err').textContent = '';
     document.getElementById('session-modal').classList.add('open');
   }
@@ -1356,647 +1208,84 @@
     editingSessionId = sessionId;
     document.getElementById('session-modal-title').textContent = 'Edit session';
     document.getElementById('session-modal-save').textContent  = 'Save changes';
-    const d = new Date(s.date);
-    document.getElementById('sf-date').value    = d.toISOString().slice(0, 10);
+    document.getElementById('sf-date').value    = new Date(s.date).toISOString().slice(0, 10);
     document.getElementById('sf-subject').value = s.subject || '';
     document.getElementById('sf-time').value    = new Date(s.deadline).toTimeString().slice(0, 5);
     document.getElementById('sf-state').value   = s.state;
-    document.getElementById('sf-day').value     = '';
     document.getElementById('session-modal-err').textContent = '';
     document.getElementById('session-modal').classList.add('open');
   }
 
-  function closeSessionModal() {
-    document.getElementById('session-modal').classList.remove('open');
-    editingSessionId = null;
-  }
+  function closeSessionModal() { document.getElementById('session-modal').classList.remove('open'); editingSessionId = null; }
 
-  async function saveSession() {
+  function saveSession() {
     const dateVal    = document.getElementById('sf-date').value;
     const subjectVal = document.getElementById('sf-subject').value.trim();
     const timeVal    = document.getElementById('sf-time').value;
     const stateVal   = document.getElementById('sf-state').value;
     const errEl      = document.getElementById('session-modal-err');
-    const btn        = document.getElementById('session-modal-save');
-    errEl.textContent = '';
-
     if (!dateVal) { errEl.textContent = 'Please pick a date.'; return; }
-    if (!timeVal) { errEl.textContent = 'Please set a deadline time.'; return; }
-
     const sessionDate  = new Date(dateVal + 'T08:00:00');
     const deadlineDate = new Date(dateVal + 'T' + timeVal + ':00');
-
-    if (DEMO_MODE) {
-      if (editingSessionId) {
-        const s = allSessions.find(x => x.$id === editingSessionId);
-        if (s) { s.date = sessionDate.toISOString(); s.subject = subjectVal; s.deadline = deadlineDate.toISOString(); s.state = stateVal; }
-        toast('Session updated (preview).');
-      } else {
-        allSessions.push({ $id: 'demo-new-' + Date.now(), date: sessionDate.toISOString(), subject: subjectVal, state: stateVal, deadline: deadlineDate.toISOString(), volunteer_count: 0, _volunteers: [] });
-        allSessions.sort((a, b) => new Date(a.date) - new Date(b.date));
-        toast('Session created (preview).');
-      }
-      closeSessionModal();
-      renderAdminLists();
-      renderList();
-      return;
+    if (editingSessionId) {
+      const s = allSessions.find(x => x.$id === editingSessionId);
+      if (s) { s.date = sessionDate.toISOString(); s.subject = subjectVal; s.deadline = deadlineDate.toISOString(); s.state = stateVal; }
+      toast('Session updated.');
+    } else {
+      allSessions.push({ $id: 'demo-new-' + Date.now(), date: sessionDate.toISOString(), subject: subjectVal, state: stateVal, deadline: deadlineDate.toISOString(), volunteer_count: 0, _volunteers: [] });
+      allSessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+      toast('Session created.');
     }
-
-    btn.disabled = true;
-    try {
-      const payload = {
-        date:            sessionDate.toISOString(),
-        subject:         subjectVal,
-        state:           stateVal,
-        deadline:        deadlineDate.toISOString(),
-        volunteer_count: editingSessionId ? undefined : 0,
-      };
-      if (payload.volunteer_count === undefined) delete payload.volunteer_count;
-
-      if (editingSessionId) {
-        const updated = await databases.updateDocument(DATABASE_ID, SESSIONS_COL, editingSessionId, payload);
-        const idx = allSessions.findIndex(x => x.$id === editingSessionId);
-        if (idx !== -1) allSessions[idx] = { ...allSessions[idx], ...updated };
-        toast('Session updated.');
-      } else {
-        const created = await databases.createDocument(DATABASE_ID, SESSIONS_COL, ID.unique(), payload, [
-          Permission.read(Role.any()),
-          Permission.update(Role.label('admin')),
-          Permission.delete(Role.label('admin')),
-        ]);
-        created._volunteers = [];
-        allSessions.push(created);
-        allSessions.sort((a, b) => new Date(a.date) - new Date(b.date));
-        toast('Session created.');
-      }
-      closeSessionModal();
-      renderAdminLists();
-      renderList();
-    } catch (e) {
-      errEl.textContent = e.message || 'Failed to save session.';
-    } finally {
-      btn.disabled = false;
-    }
+    closeSessionModal();
+    renderAdminLists();
+    renderList();
   }
 
-  // ─── DELETE CONFIRM ───────────────────────────────────────────
   function openConfirmDelete(sessionId) {
     deletingSessionId = sessionId;
     const s = allSessions.find(x => x.$id === sessionId);
-    const d = s ? new Date(s.date).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) : '';
-    document.getElementById('confirm-sub').textContent =
-      'Delete the session on ' + d + '? All signups will also be removed. This cannot be undone.';
+    const dateStr = s ? new Date(s.date).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' }) : '';
+    document.getElementById('confirm-sub').textContent = `Delete the session on ${dateStr}? This cannot be undone.`;
     document.getElementById('confirm-modal').classList.add('open');
   }
 
-  function closeConfirmModal() {
-    document.getElementById('confirm-modal').classList.remove('open');
-    deletingSessionId = null;
+  function closeConfirmModal() { document.getElementById('confirm-modal').classList.remove('open'); deletingSessionId = null; }
+
+  function confirmDelete() {
+    allSessions = allSessions.filter(x => x.$id !== deletingSessionId);
+    closeConfirmModal();
+    renderAdminLists();
+    renderList();
+    toast('Session deleted.');
   }
 
-  async function confirmDelete() {
-    if (!deletingSessionId) return;
-    const btn = document.getElementById('confirm-ok-btn');
-    btn.disabled = true;
-
-    if (DEMO_MODE) {
-      allSessions = allSessions.filter(x => x.$id !== deletingSessionId);
-      closeConfirmModal();
-      renderAdminLists();
-      renderList();
-      toast('Session deleted (preview).');
-      btn.disabled = false;
-      return;
-    }
-
-    try {
-      // Delete all signups for this session first
-      const { documents: sups } = await databases.listDocuments(DATABASE_ID, SIGNUPS_COL, [
-        Query.equal('session_id', deletingSessionId), Query.limit(50)
-      ]);
-      await Promise.all(sups.map(s => databases.deleteDocument(DATABASE_ID, SIGNUPS_COL, s.$id)));
-      await databases.deleteDocument(DATABASE_ID, SESSIONS_COL, deletingSessionId);
-      allSessions = allSessions.filter(x => x.$id !== deletingSessionId);
-      closeConfirmModal();
-      renderAdminLists();
-      renderList();
-      toast('Session deleted.');
-    } catch (e) {
-      toast('Failed to delete session.');
-      console.error(e);
-    } finally {
-      btn.disabled = false;
-    }
+  function openClearDbModal() { document.getElementById('clear-db-ok-btn').disabled = false; document.getElementById('clear-db-modal').classList.add('open'); }
+  function closeClearDbModal() { document.getElementById('clear-db-modal').classList.remove('open'); }
+  function confirmClearDb() {
+    allSessions = []; mySignups = {};
+    closeClearDbModal(); renderAdminLists(); renderList();
+    toast('All data cleared.');
   }
 
-  // ─── NAVIGATION ─────────────────────────────────────────────
-  let currentNav = 'sessions';
-
-  function showBottomNav() {
-    document.getElementById('bottom-nav').classList.add('visible');
-  }
-  function hideBottomNav() {
-    document.getElementById('bottom-nav').classList.remove('visible');
-  }
-
-  function navTo(tab) {
-    currentNav = tab;
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('nav-' + tab)?.classList.add('active');
-    if (tab === 'sessions') {
-      showList();
-    } else if (tab === 'classmates') {
-      renderClassmates();
-      showScreen('screen-classmates');
-    } else if (tab === 'account') {
-      document.getElementById('acct-name').textContent  = currentUser?.name || '';
-      document.getElementById('acct-email').textContent = currentUser?.email || '';
-      showScreen('screen-account');
-    }
-  }
-
-  // ─── CLASSMATES ──────────────────────────────────────────────
-  function renderClassmates() {
-    const listEl = document.getElementById('classmates-list');
-    const subEl  = document.getElementById('cm-sub');
-    document.getElementById('cm-user-badge').textContent = currentUser?.name || '⋯';
-
-    // Build pick stats from allSessions
-    const pickedSessions = allSessions.filter(s => s.state === 'picked' && s.winner_name);
-    pickedSessions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    // Collect all known people: from signups + winners
-    const peopleMap = {}; // user_id -> { name, pickCount, lastPickDate }
-
-    // Add winners
-    pickedSessions.forEach(s => {
-      if (!s.winner_id) return;
-      if (!peopleMap[s.winner_id]) peopleMap[s.winner_id] = { name: s.winner_name, pickCount: 0, lastPickDate: null };
-      peopleMap[s.winner_id].pickCount++;
-      if (!peopleMap[s.winner_id].lastPickDate) peopleMap[s.winner_id].lastPickDate = s.date;
-    });
-
-    // Add volunteers from loaded sessions
-    allSessions.forEach(s => {
-      if (s._volunteers) {
-        s._volunteers.forEach(v => {
-          if (!peopleMap[v.user_id]) peopleMap[v.user_id] = { name: v.user_name, pickCount: 0, lastPickDate: null };
-          else if (!peopleMap[v.user_id].name) peopleMap[v.user_id].name = v.user_name;
-        });
-      }
-    });
-
-    // Add current user
-    if (currentUser && !peopleMap[currentUser.$id]) {
-      peopleMap[currentUser.$id] = { name: currentUser.name || currentUser.email, pickCount: 0, lastPickDate: null };
-    }
-
-    const people = Object.entries(peopleMap).map(([id, d]) => ({ id, ...d }));
-    people.sort((a, b) => b.pickCount - a.pickCount || (a.name || '').localeCompare(b.name || ''));
-
-    const totalPicks = people.reduce((sum, p) => sum + p.pickCount, 0);
-    subEl.textContent = `${people.length} classmates · ${totalPicks} presentation${totalPicks !== 1 ? 's' : ''} given`;
-
-    if (people.length === 0) {
-      listEl.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:1rem 0;">No data yet — classmates will appear here after they sign up or present.</div>';
-      return;
-    }
-
-    listEl.innerHTML = people.map(p => {
-      const isMe = p.id === currentUser?.$id;
-      const inits = (p.name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-      const avatarClass = isMe ? 'me' : p.pickCount > 0 ? 'picked' : '';
-      const lastPick = p.lastPickDate
-        ? new Date(p.lastPickDate).toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })
-        : null;
-      return `
-        <div class="cm-row">
-          <div class="cm-avatar ${avatarClass}">${inits}</div>
-          <div class="cm-info">
-            <div class="cm-name">${p.name || 'Unknown'}${isMe ? ' <span style="font-size:11px;color:var(--muted);">(you)</span>' : ''}</div>
-            ${lastPick ? `<div class="cm-detail">Last presented ${lastPick}</div>` : '<div class="cm-detail" style="color:var(--border2);">Never presented</div>'}
-          </div>
-          <div class="cm-right">
-            <span class="cm-count ${p.pickCount > 0 ? 'has-picks' : ''}">${p.pickCount} time${p.pickCount !== 1 ? 's' : ''}</span>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  // ─── I18N ────────────────────────────────────────────────────
-  const TRANSLATIONS = {
-    hu: {
-      // Login
-      login_eyebrow: 'Történelem · 11/B',
-      login_title_line1: 'Szóbeli',
-      login_title_line2: 'Sorsolás.',
-      login_sub: 'Jelentkezz be az osztályfiókkal, hogy önként jelentkezz a következő szóbeli felelésre.',
-      lbl_username: 'Felhasználónév',
-      lbl_password: 'Jelszó',
-      btn_signin: 'Bejelentkezés',
-      btn_preview: 'Előnézet fiók nélkül →',
-      // Nav
-      nav_sessions: 'Felelések',
-      nav_classmates: 'Osztály',
-      nav_account: 'Fiók',
-      // Sessions list
-      sessions_title: 'Felelések',
-      sessions_sub_open: 'nyitott felelés · jelentkezz önkéntesnek',
-      // Detail
-      detail_eyebrow: 'Szóbeli felelés sorsolás',
-      btn_signup: 'Jelentkezés erre a felelésre',
-      btn_withdraw: '✓ Jelentkeztél — visszavon',
-      lock_msg: 'Te feleltél legutóbb — erre a sorsolásra nem jelentkezhetsz.',
-      winner_label: 'A mai előadó',
-      winner_sub: 'Véletlenszerűen kisorsolva az önkéntesek közül',
-      failed_title: 'Nem volt önkéntes',
-      failed_sub: 'Senki nem jelentkezett — a tanár választ manuálisan.',
-      lbl_volunteers: 'Önkéntesek',
-      vol_empty: 'Még senki nem jelentkezett.',
-      countdown_auto: 'A sorsolás automatikusan fut a felelés kezdetén',
-      you_tag: '(te)',
-      // Classmates
-      classmates_title: 'Osztálytársak',
-      never_presented: 'Még nem felelt',
-      last_presented: 'Utoljára felelt',
-      times_singular: 'alkalom',
-      times_plural: 'alkalom',
-      // Account
-      account_title: 'Fiók',
-      signed_in_as: 'Bejelentkezve',
-      lbl_language: 'Nyelv',
-      btn_changepw: 'Jelszó megváltoztatása',
-      btn_signout: 'Kijelentkezés',
-      // Password modal
-      pw_title: 'Jelszó megváltoztatása',
-      pw_sub: 'Válassz új jelszót a fiókodhoz.',
-      lbl_new_pw: 'Új jelszó',
-      lbl_confirm_pw: 'Új jelszó megerősítése',
-      btn_save: 'Mentés',
-      btn_cancel: 'Mégse',
-      // Admin
-      admin_btn: 'Admin ⚙',
-      admin_title: 'Admin panel',
-      admin_sub: 'Felelések kezelése a sorsoláshoz.',
-      admin_upcoming: 'Közelgő felelések',
-      admin_past: 'Korábbi felelések',
-      btn_new_session: '+ Új felelés',
-      // Preview
-      preview_banner: 'Előnézeti mód — az adatok nem kerülnek mentésre',
-      btn_exit_preview: 'Kilépés',
-      // Toast
-      toast_signed_up: 'Sikeresen jelentkeztél!',
-      toast_withdrawn: 'Jelentkezés visszavonva.',
-      toast_pw_updated: 'Jelszó sikeresen megváltoztatva.',
-      toast_demo_pw: 'Előnézeti módban a jelszóváltoztatás nem elérhető.',
-    },
-    en: {
-      login_eyebrow: 'History · 9/G',
-      login_title_line1: 'Oral',
-      login_title_line2: 'Draw.',
-      login_sub: 'Sign in with your class account to volunteer for the next oral presentation.',
-      lbl_username: 'Username',
-      lbl_password: 'Password',
-      btn_signin: 'Sign in',
-      btn_preview: 'Preview without account →',
-      nav_sessions: 'Sessions',
-      nav_classmates: 'Classmates',
-      nav_account: 'Account',
-      sessions_title: 'Sessions',
-      sessions_sub_open: 'open session · sign up to volunteer',
-      detail_eyebrow: 'Oral presentation draw',
-      btn_signup: 'Sign up for this session',
-      btn_withdraw: '✓ Signed up — withdraw',
-      lock_msg: 'You presented last session — you\'re not eligible for this draw.',
-      winner_label: 'Today\'s presenter',
-      winner_sub: 'Selected randomly from volunteers',
-      failed_title: 'No volunteers',
-      failed_sub: 'Nobody signed up — teacher selects manually.',
-      lbl_volunteers: 'Volunteers',
-      vol_empty: 'Nobody signed up yet.',
-      countdown_auto: 'Draw runs automatically at session start',
-      you_tag: '(you)',
-      classmates_title: 'Classmates',
-      never_presented: 'Never presented',
-      last_presented: 'Last presented',
-      times_singular: 'time',
-      times_plural: 'times',
-      account_title: 'Account',
-      signed_in_as: 'Signed in as',
-      lbl_language: 'Language',
-      btn_changepw: 'Change password',
-      btn_signout: 'Sign out',
-      pw_title: 'Change password',
-      pw_sub: 'Choose a new password for your account.',
-      lbl_new_pw: 'New password',
-      lbl_confirm_pw: 'Confirm new password',
-      btn_save: 'Save',
-      btn_cancel: 'Cancel',
-      admin_btn: 'Admin ⚙',
-      admin_title: 'Admin panel',
-      admin_sub: 'Manage sessions for the oral draw.',
-      admin_upcoming: 'Upcoming sessions',
-      admin_past: 'Past sessions',
-      btn_new_session: '+ New session',
-      preview_banner: 'Preview mode — no data is saved',
-      btn_exit_preview: 'Exit preview',
-      toast_signed_up: "You're signed up!",
-      toast_withdrawn: 'Signup withdrawn.',
-      toast_pw_updated: 'Password updated successfully.',
-      toast_demo_pw: 'Password changes are disabled in preview mode.',
-    },
-    de: {
-      login_eyebrow: 'Geschichte · 11/B',
-      login_title_line1: 'Mündliche',
-      login_title_line2: 'Auslosung.',
-      login_sub: 'Melde dich mit deinem Klassenkonto an, um dich für die nächste mündliche Prüfung zu melden.',
-      lbl_username: 'Benutzername',
-      lbl_password: 'Passwort',
-      btn_signin: 'Anmelden',
-      btn_preview: 'Vorschau ohne Konto →',
-      nav_sessions: 'Stunden',
-      nav_classmates: 'Klasse',
-      nav_account: 'Konto',
-      sessions_title: 'Stunden',
-      sessions_sub_open: 'offene Stunde · als Freiwilliger anmelden',
-      detail_eyebrow: 'Mündliche Prüfung Auslosung',
-      btn_signup: 'Für diese Stunde anmelden',
-      btn_withdraw: '✓ Angemeldet — zurückziehen',
-      lock_msg: 'Du hast zuletzt präsentiert — du bist für diese Auslosung nicht berechtigt.',
-      winner_label: 'Heutiger Präsentator',
-      winner_sub: 'Zufällig aus den Freiwilligen ausgewählt',
-      failed_title: 'Keine Freiwilligen',
-      failed_sub: 'Niemand hat sich angemeldet — der Lehrer wählt manuell.',
-      lbl_volunteers: 'Freiwillige',
-      vol_empty: 'Noch niemand angemeldet.',
-      countdown_auto: 'Auslosung läuft automatisch zum Stundenbeginn',
-      you_tag: '(du)',
-      classmates_title: 'Klassenkameraden',
-      never_presented: 'Noch nie präsentiert',
-      last_presented: 'Zuletzt präsentiert',
-      times_singular: 'Mal',
-      times_plural: 'Mal',
-      account_title: 'Konto',
-      signed_in_as: 'Angemeldet als',
-      lbl_language: 'Sprache',
-      btn_changepw: 'Passwort ändern',
-      btn_signout: 'Abmelden',
-      pw_title: 'Passwort ändern',
-      pw_sub: 'Wähle ein neues Passwort für dein Konto.',
-      lbl_new_pw: 'Neues Passwort',
-      lbl_confirm_pw: 'Neues Passwort bestätigen',
-      btn_save: 'Speichern',
-      btn_cancel: 'Abbrechen',
-      admin_btn: 'Admin ⚙',
-      admin_title: 'Admin-Panel',
-      admin_sub: 'Stunden für die Auslosung verwalten.',
-      admin_upcoming: 'Kommende Stunden',
-      admin_past: 'Vergangene Stunden',
-      btn_new_session: '+ Neue Stunde',
-      preview_banner: 'Vorschaumodus — keine Daten werden gespeichert',
-      btn_exit_preview: 'Vorschau beenden',
-      toast_signed_up: 'Du bist angemeldet!',
-      toast_withdrawn: 'Anmeldung zurückgezogen.',
-      toast_pw_updated: 'Passwort erfolgreich geändert.',
-      toast_demo_pw: 'Passwortänderungen sind im Vorschaumodus deaktiviert.',
-    }
-  };
-
-  let currentLang = localStorage.getItem('lang') || 'hu';
-
-  function t(key) {
-    return TRANSLATIONS[currentLang][key] || TRANSLATIONS['en'][key] || key;
-  }
-
-  function setLang(lang) {
-    currentLang = lang;
-    localStorage.setItem('lang', lang);
-    applyLang();
-  }
-
-  function applyLang() {
-    const L = currentLang;
-    // Update lang buttons
-    ['hu','en','de'].forEach(l => {
-      const btn = document.getElementById('lang-' + l);
-      if (btn) btn.classList.toggle('active', l === L);
-    });
-
-    // Login screen
-    const ley = document.querySelector('.login-eyebrow');
-    if (ley) ley.textContent = t('login_eyebrow');
-    const ltitle = document.querySelector('.login-title');
-    if (ltitle) ltitle.innerHTML = t('login_title_line1') + '<br><em>' + t('login_title_line2') + '</em>';
-    const lsub = document.querySelector('.login-sub');
-    if (lsub) lsub.textContent = t('login_sub');
-    const luLabel = document.querySelector('#screen-login .field label');
-    if (luLabel) luLabel.textContent = t('lbl_username');
-    const lpLabels = document.querySelectorAll('#screen-login .field label');
-    if (lpLabels[1]) lpLabels[1].textContent = t('lbl_password');
-    const lbtn = document.getElementById('login-btn');
-    if (lbtn && !lbtn.disabled) lbtn.textContent = t('btn_signin');
-    const pbtn = document.querySelector('.preview-btn');
-    if (pbtn) pbtn.textContent = t('btn_preview');
-
-    // Nav labels
-    const navLabels = document.querySelectorAll('.nav-label');
-    const navKeys = ['nav_sessions','nav_classmates','nav_account'];
-    navLabels.forEach((el, i) => { if (navKeys[i]) el.textContent = t(navKeys[i]); });
-
-    // Sessions list title
-    const lt = document.querySelector('#screen-list .list-title');
-    if (lt) lt.textContent = t('sessions_title');
-
-    // Account screen
-    const atitle = document.querySelector('#screen-account h2');
-    if (atitle) atitle.textContent = t('account_title');
-    const sia = document.querySelector('#screen-account [id="acct-name"]')?.previousElementSibling;
-    if (sia) sia.textContent = t('signed_in_as');
-    const llbl = document.getElementById('lbl-language');
-    if (llbl) llbl.textContent = t('lbl_language');
-    const bcp = document.getElementById('btn-changepw');
-    if (bcp) bcp.textContent = t('btn_changepw');
-    const bso = document.getElementById('btn-signout');
-    if (bso) bso.textContent = t('btn_signout');
-
-    // Classmates title
-    const ctitle = document.querySelector('#screen-classmates h2');
-    if (ctitle) ctitle.textContent = t('classmates_title');
-
-    // Password modal
-    const pwtitle = document.querySelector('#pw-modal .modal-title');
-    if (pwtitle) pwtitle.textContent = t('pw_title');
-    const pwsub = document.querySelector('#pw-modal .modal-sub');
-    if (pwsub) pwsub.textContent = t('pw_sub');
-    const pwLabels = document.querySelectorAll('#pw-modal .field label');
-    if (pwLabels[0]) pwLabels[0].textContent = t('lbl_new_pw');
-    if (pwLabels[1]) pwLabels[1].textContent = t('lbl_confirm_pw');
-    const pwsave = document.getElementById('modal-save-btn');
-    if (pwsave) pwsave.textContent = t('btn_save');
-    const pwcancel = document.querySelector('#pw-modal .btn-ghost');
-    if (pwcancel) pwcancel.textContent = t('btn_cancel');
-
-    // Admin button
-    const adminBtn = document.getElementById('admin-panel-btn');
-    if (adminBtn) adminBtn.textContent = t('admin_btn');
-
-    // Preview banner
-    const pb = document.querySelector('.preview-banner');
-    if (pb) {
-      const exitBtn = pb.querySelector('.exit-preview-btn');
-      const exitText = exitBtn ? exitBtn.outerHTML : '';
-      pb.innerHTML = t('preview_banner') + ' <span>·</span> ' + exitText;
-      const newExit = pb.querySelector('.exit-preview-btn');
-      if (newExit) { newExit.textContent = t('btn_exit_preview'); newExit.onclick = exitPreview; }
-    }
-
-    // Re-render dynamic content if visible
-    if (document.getElementById('screen-classmates').classList.contains('active')) renderClassmates();
-    if (currentSession) renderDetail();
-  }
-
-  // ─── CLEAR DATABASE ──────────────────────────────────────────
-  function openClearDbModal() {
-    document.getElementById('clear-db-ok-btn').disabled = false;
-    document.getElementById('clear-db-modal').classList.add('open');
-  }
-  function closeClearDbModal() {
-    document.getElementById('clear-db-modal').classList.remove('open');
-  }
-
-  async function confirmClearDb() {
-    const btn = document.getElementById('clear-db-ok-btn');
-    btn.disabled = true;
-
-    if (DEMO_MODE) {
-      allSessions = [];
-      mySignups = {};
-      closeClearDbModal();
-      renderAdminLists();
-      renderList();
-      toast('All data cleared (preview).');
-      return;
-    }
-
-    try {
-      // Delete all signups
-      let signupsDone = false;
-      while (!signupsDone) {
-        const { documents: sups } = await databases.listDocuments(DATABASE_ID, SIGNUPS_COL, [Query.limit(100)]);
-        if (sups.length === 0) { signupsDone = true; break; }
-        await Promise.all(sups.map(s => databases.deleteDocument(DATABASE_ID, SIGNUPS_COL, s.$id)));
-      }
-
-      // Delete all sessions
-      let sessionsDone = false;
-      while (!sessionsDone) {
-        const { documents: sess } = await databases.listDocuments(DATABASE_ID, SESSIONS_COL, [Query.limit(100)]);
-        if (sess.length === 0) { sessionsDone = true; break; }
-        await Promise.all(sess.map(s => databases.deleteDocument(DATABASE_ID, SESSIONS_COL, s.$id)));
-      }
-
-      allSessions = [];
-      mySignups = {};
-      lastPickedId = null;
-      closeClearDbModal();
-      renderAdminLists();
-      renderList();
-      toast('All data cleared.');
-    } catch (e) {
-      toast('Failed to clear data.');
-      console.error(e);
-      btn.disabled = false;
-    }
-  }
-
-  // ─── RESET HISTORY ───────────────────────────────────────────
-  function openResetHistoryModal() {
-    document.getElementById('reset-history-ok-btn').disabled = false;
-    document.getElementById('reset-history-modal').classList.add('open');
-  }
-  function closeResetHistoryModal() {
-    document.getElementById('reset-history-modal').classList.remove('open');
-  }
-
-  async function confirmResetHistory() {
-    const btn = document.getElementById('reset-history-ok-btn');
-    btn.disabled = true;
-
-    if (DEMO_MODE) {
-      // Reset all sessions to open, clear volunteers
-      allSessions.forEach(s => {
-        s.state = 'open';
-        s.winner_id = null;
-        s.winner_name = null;
-        s.volunteer_count = 0;
-        s._volunteers = [];
-      });
-      mySignups = {};
-      lastPickedId = null;
-      closeResetHistoryModal();
-      renderAdminLists();
-      renderList();
-      toast('History reset (preview).');
-      return;
-    }
-
-    try {
-      // Delete all signups
-      let done = false;
-      while (!done) {
-        const { documents: sups } = await databases.listDocuments(DATABASE_ID, SIGNUPS_COL, [Query.limit(100)]);
-        if (sups.length === 0) { done = true; break; }
-        await Promise.all(sups.map(s => databases.deleteDocument(DATABASE_ID, SIGNUPS_COL, s.$id)));
-      }
-
-      // Reset all sessions back to open
-      const { documents: sessions } = await databases.listDocuments(DATABASE_ID, SESSIONS_COL, [Query.limit(100)]);
-      await Promise.all(sessions.map(s => databases.updateDocument(DATABASE_ID, SESSIONS_COL, s.$id, {
-        state: 'open',
-        winner_id: null,
-        winner_name: null,
-        volunteer_count: 0,
-      })));
-
-      // Update local state
-      allSessions.forEach(s => {
-        s.state = 'open';
-        s.winner_id = null;
-        s.winner_name = null;
-        s.volunteer_count = 0;
-        s._volunteers = [];
-      });
-      mySignups = {};
-      lastPickedId = null;
-
-      closeResetHistoryModal();
-      renderAdminLists();
-      renderList();
-      toast('Presentation history reset.');
-    } catch (e) {
-      toast('Failed to reset history.');
-      console.error(e);
-      btn.disabled = false;
-    }
+  function openResetHistoryModal() { document.getElementById('reset-history-ok-btn').disabled = false; document.getElementById('reset-history-modal').classList.add('open'); }
+  function closeResetHistoryModal() { document.getElementById('reset-history-modal').classList.remove('open'); }
+  function confirmResetHistory() {
+    allSessions.forEach(s => { s.state = 'open'; s.winner_id = null; s.winner_name = null; s.volunteer_count = 0; s._volunteers = []; });
+    mySignups = {}; lastPickedId = null;
+    closeResetHistoryModal(); renderAdminLists(); renderList();
+    toast('History reset.');
   }
 
   // ─── BOOT ────────────────────────────────────────────────────
-  (async () => {
-    showLoading();
-    try {
-      currentUser = await account.get();
-      document.getElementById('user-badge').textContent = currentUser.name || currentUser.email;
-      await loadData();
-      showBottomNav();
-      applyLang();
-      showScreen('screen-list');
-    } catch (_) {
-      applyLang();
-      showScreen('screen-login');
-    } finally {
-      hideLoading();
-    }
-  })();
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('user-badge').textContent = DEMO_USER.name;
+    const adminBtn = document.getElementById('admin-panel-btn');
+    if (adminBtn) adminBtn.style.display = 'inline-flex';
+    applyLang();
+    renderList();
+    showBottomNav();
+    showScreen('screen-list');
+  });
   </script>
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav" id="bottom-nav">
@@ -2056,4 +1345,4 @@
 </html>
 
 <!-- All rights reserved. - Made by QuaternionDev (https://github.com/QuaternionDev) - 2026
-# v1.0.5-->
+# v1.0.5sp-->
